@@ -63,7 +63,7 @@ export function TaskItem({ task }: { task: Task }) {
                     o.isFinal ? "text-green-700 font-medium" : "text-gray-600"
                   }`}
                 >
-                  {o.content}
+                  {o.isFinal ? o.content : o.content + "..."}
                 </p>
               ))}
             </div>
