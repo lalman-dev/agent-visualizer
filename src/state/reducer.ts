@@ -1,4 +1,4 @@
-import type { RunState, Task } from "../utils/types";
+import type { RunState, Task, Event } from "./types";
 
 export const initialState: RunState = {
   id: null,
@@ -7,9 +7,10 @@ export const initialState: RunState = {
   startTime: null,
   tasks: {},
   taskOrder: [],
+  agentThoughts: [],
 };
 
-export function reducer(state: RunState, event: any): RunState {
+export function reducer(state: RunState, event: Event): RunState {
   switch (event.type) {
     case "run_started":
       return {
@@ -31,6 +32,9 @@ export function reducer(state: RunState, event: any): RunState {
         dependencies: event.depends_on,
         parallelGroup: event.parallel_group,
         retries: 0,
+        error: null,
+        reason: null,
+        message: null,
       };
 
       return {
@@ -47,19 +51,19 @@ export function reducer(state: RunState, event: any): RunState {
       const task = state.tasks[event.task_id];
       if (!task) return state;
 
+      const newCall = {
+        id: `${event.task_id}-${task.toolCalls.length}`,
+        tool: event.tool,
+        input: event.input_summary,
+      };
+
       return {
         ...state,
         tasks: {
           ...state.tasks,
           [event.task_id]: {
             ...task,
-            toolCalls: [
-              ...task.toolCalls,
-              {
-                tool: event.tool,
-                input: event.input_summary,
-              },
-            ],
+            toolCalls: [...task.toolCalls, newCall],
           },
         },
       };
@@ -72,7 +76,7 @@ export function reducer(state: RunState, event: any): RunState {
       const updatedCalls = [...task.toolCalls];
       const last = updatedCalls[updatedCalls.length - 1];
 
-      if (last) {
+      if (last && last.tool === event.tool) {
         last.output = event.output_summary;
       }
 
@@ -124,11 +128,27 @@ export function reducer(state: RunState, event: any): RunState {
           [event.task_id]: {
             ...task,
             status: event.status,
+            error: event.error ?? null,
+            reason: event.reason ?? null,
+            message: event.message ?? null,
             retries: isRetry ? task.retries + 1 : task.retries,
           },
         },
       };
     }
+
+    case "agent_thought":
+      return {
+        ...state,
+        agentThoughts: [
+          ...state.agentThoughts,
+          {
+            taskId: event.task_id,
+            thought: event.thought,
+            timestamp: event.timestamp,
+          },
+        ],
+      };
 
     case "run_complete":
       return {
