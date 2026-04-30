@@ -1,0 +1,63 @@
+export const runSuccessEvents = [
+  {
+    type: "run_started",
+    run_id: "r_001",
+    query: "Analyse Apple R&D intensity vs peers",
+    timestamp: Date.now(),
+  },
+  {
+    type: "agent_thought",
+    task_id: "coordinator",
+    thought: "Breaking problem into subtasks...",
+    timestamp: Date.now(),
+  },
+  {
+    type: "task_spawned",
+    task_id: "t_001",
+    label: "Fetch Apple 10-K filings",
+    agent: "filing_fetcher",
+    depends_on: [],
+    parallel_group: null,
+    timestamp: Date.now(),
+  },
+  {
+    type: "tool_call",
+    task_id: "t_001",
+    tool: "sec_edgar_search",
+    input_summary: "AAPL filings",
+    timestamp: Date.now(),
+  },
+  {
+    type: "tool_result",
+    task_id: "t_001",
+    tool: "sec_edgar_search",
+    output_summary: "5 filings found",
+    timestamp: Date.now(),
+  },
+  {
+    type: "partial_output",
+    task_id: "t_001",
+    content: "Apple R&D grew significantly...",
+    is_final: false,
+    quality_score: null,
+    timestamp: Date.now(),
+  },
+  {
+    type: "task_update",
+    task_id: "t_001",
+    status: "complete",
+    timestamp: Date.now(),
+  },
+  {
+    type: "run_complete",
+    run_id: "r_001",
+    status: "complete",
+    duration_ms: 12000,
+    task_count: 1,
+    output: {
+      summary: "Apple increased R&D intensity over time.",
+      citations: [],
+    },
+    timestamp: Date.now(),
+  },
+] as const;
