@@ -3,11 +3,11 @@ import type { Event } from "../state/types";
 type Listener = (event: Event) => void;
 
 export class MockEventEmitter {
-  private events: Event[];
+  private events: readonly Event[];
   private listeners: Listener[] = [];
   private timeouts: number[] = [];
 
-  constructor(events: Event[]) {
+  constructor(events: readonly Event[]) {
     this.events = events;
   }
 

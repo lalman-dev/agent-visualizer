@@ -3,7 +3,7 @@ import { reducer, initialState } from "./reducer";
 import type { Event } from "./types";
 import { MockEventEmitter } from "../mock/eventEmitter";
 
-export function useAgentRun(events: Event[]) {
+export function useAgentRun(events: readonly Event[]) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const emitterRef = useRef<MockEventEmitter | null>(null);

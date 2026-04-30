@@ -1,4 +1,6 @@
-export const runSuccessEvents = [
+import type { Event } from "../../state/types";
+
+export const runSuccessEvents: readonly Event[] = [
   {
     type: "run_started",
     run_id: "r_001",
@@ -60,4 +62,4 @@ export const runSuccessEvents = [
     },
     timestamp: Date.now(),
   },
-] as const;
+];
