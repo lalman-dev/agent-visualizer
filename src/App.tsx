@@ -2,6 +2,8 @@ import { RunHeader } from "./components/RunHeader";
 import { TaskList } from "./components/TaskList";
 import { useAgentRun } from "./state/useAgentRun";
 import { runSuccessEvents } from "./mock/fixtures/runSuccess";
+import { AgentThoughts } from "./components/AgentThoughts";
+
 function App() {
   const state = useAgentRun(runSuccessEvents);
   console.log("STATE UPDATE:", state);
@@ -12,11 +14,12 @@ function App() {
       <TaskList state={state} />
 
       {state.finalOutput && (
-        <div className="p-4 border rounded bg-green-50">
-          <h3 className="font-semibold mb-2">Final Output</h3>
-          <p>{state.finalOutput.summary}</p>
+        <div className="p-5 border-2 border-green-400 rounded-lg bg-green-50 mt-6 shadow-sm">
+          <h3 className="font-semibold text-green-700 mb-2">Final Output</h3>
+          <p className="text-gray-800">{state.finalOutput.summary}</p>
         </div>
       )}
+      <AgentThoughts thoughts={state.agentThoughts} />
     </div>
   );
 }
