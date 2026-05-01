@@ -74,7 +74,7 @@ function App() {
 
                 <p className="text-gray-800">{state.finalOutput.summary}</p>
 
-                {/* CITATIONS */}
+                {/* 📚 CITATIONS */}
                 {state.finalOutput.citations?.length > 0 && (
                   <div className="mt-4 border-t pt-3 text-xs text-gray-600">
                     <p className="font-medium mb-1">Citations</p>
