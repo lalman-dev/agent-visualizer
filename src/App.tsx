@@ -11,6 +11,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="p-6 max-w-3xl mx-auto space-y-4">
+        
         <RunHeader state={state} />
         <TaskList state={state} />
 
