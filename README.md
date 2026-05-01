@@ -1,73 +1,191 @@
-# React + TypeScript + Vite
+# AI Agent Execution Visualizer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time frontend system for visualizing multi-agent AI workflows — including task orchestration, parallel execution, retries, and streaming outputs.
 
-Currently, two official plugins are available:
+This project focuses on making complex AI execution processes **transparent, legible, and trustworthy** for end users.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Demo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> 👉 Add a short GIF or screen recording here (20–30 sec)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🧠 Problem
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Modern AI systems are no longer simple request–response flows. They involve:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Multiple agents working in coordination
+- Task decomposition and dependency management
+- Parallel execution across agents
+- Tool calls and intermediate results
+- Retries, failures, and cancellations
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Most interfaces hide all of this behind a loading spinner.
+
+This project solves that by making the **entire execution process visible and understandable**.
+
+---
+
+## ✨ Features
+
+- ⚡ **Real-time event-driven UI** — state updates as execution unfolds
+- 🧩 **Full task lifecycle handling** — `running → failed → retry → cancelled → complete`
+- 🔀 **Parallel task visualization** — grouped execution with clear visual hierarchy
+- 📡 **Progressive outputs** — partial results stream in before the final answer
+- 🔁 **Failure and retry handling** — retries are surfaced, not hidden
+- ⚠️ **Intentional cancellation UX** — cancelled tasks are treated as decisions, not errors
+- 🧠 **Agent thoughts panel** — surfaces model reasoning for transparency
+- 🎯 **Clear information hierarchy** — final output is always prominently emphasized
+
+---
+
+## 🏗️ Architecture
+
+### Event-Driven State System
+
+The application is built around a reducer-based state machine:
+Event Stream → Reducer → Normalized State → UI
+Each incoming event incrementally updates the system state, ensuring predictable and traceable UI behavior.
+
+---
+
+### Typed Event Model
+
+All events are defined using a strict TypeScript union type:
+
+```ts
+type AgentEvent =
+  | RunStartedEvent
+  | TaskSpawnedEvent
+  | ToolCallEvent
+  | TaskUpdateEvent
+  | PartialOutputEvent
+  | RunCompletedEvent;
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This ensures:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Strong type safety across the event pipeline
+- Clear contracts between the event stream and UI
+- Easier debugging and future extensibility
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+### Mock Streaming Engine
+
+A custom event emitter simulates real-time execution with:
+
+- Variable delays for realistic pacing
+- A pub-sub model for decoupled event handling
+- Proper cleanup on component unmount
+
+This mirrors how production WebSocket or SSE-based systems behave, making it straightforward to swap in a real backend.
+
+---
+
+### State Normalization
+
+Tasks are stored in a normalized structure:
+
+```ts
+tasks: Record<string, Task>
+taskOrder: string[]
 ```
+
+This enables:
+
+- Efficient O(1) task updates by ID
+- Stable render order independent of arrival sequence
+- Easy grouping for parallel task visualization
+
+---
+
+## 🖥️ UI Structure
+
+RunHeader
+↓
+TaskList (timeline)
+├── TaskItem
+└── ParallelGroup
+↓
+Final Output
+↓
+Agent Thoughts
+
+---
+
+## 🎨 Key Design Decisions
+
+**Final Output Placement**
+Placed at the end of the timeline to preserve execution flow, making the result feel like a natural conclusion rather than an interruption.
+
+**Parallel Task Representation**
+Tasks sharing a `parallel_group` are grouped visually to prevent misleading sequential interpretation of work that happened concurrently.
+
+**Cancelled State**
+Displayed as a neutral "stopped early" state rather than an error, accurately reflecting intentional system behavior.
+
+**Partial Outputs**
+Rendered inline with progressive updates to provide continuous feedback throughout execution — no waiting for a final result.
+
+**Agent Thoughts**
+Surfaced in a dedicated panel to keep the main timeline clean while still exposing model reasoning for full transparency.
+
+---
+
+## ⚙️ Tech Stack
+
+|               |                                      |
+| ------------- | ------------------------------------ |
+| **Framework** | React (Hooks, functional components) |
+| **Language**  | TypeScript (strict mode)             |
+| **Styling**   | Tailwind CSS — no UI libraries       |
+| **Bundler**   | Vite                                 |
+
+---
+
+## 🧪 Running Locally
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+├── components/     # UI components (RunHeader, TaskItem, ParallelGroup, etc.)
+├── state/          # Reducer, state types, and event definitions
+├── mock/           # Streaming engine and simulated event sequences
+└── utils/          # Helpers and shared logic
+```
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] Dependency graph visualization
+- [ ] WebSocket / SSE integration for real backends
+- [ ] Improved streaming UX with smoother partial output transitions
+- [ ] Collapsible logs for large or long-running executions
+
+---
+
+## 📌 What This Project Demonstrates
+
+- Event-driven frontend architecture at a non-trivial scale
+- Complex async state modeling with a reducer-based state machine
+- Real-time UI rendering with predictable, traceable updates
+- Product-level UX thinking — clarity, hierarchy, and user trust
+- Ability to reason about and implement systems with genuine complexity
+
+---
+
+## 👤 Author
+
+**Lalman** — Frontend Developer (React, Next.js, TypeScript)
