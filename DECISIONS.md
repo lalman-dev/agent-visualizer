@@ -1,4 +1,4 @@
-This document explains key design decisions made while building the Agent Run Panel, along with trade-offs and potential future improvements.
+This document explains key design decisions made while building the Agent Run Panel, along with reasoning and the conditions under which I would reconsider each decision.
 
 ---
 
@@ -6,19 +6,15 @@ This document explains key design decisions made while building the Agent Run Pa
 
 **Decision**
 
-Agent thoughts are displayed in a separate panel below the main execution timeline instead of inline within each task.
+Agent thoughts are displayed in a dedicated panel below the main execution timeline, not inline within individual tasks.
 
 **Reasoning**
 
-The primary user is a non-technical analyst who cares more about *what happened* than *how the system reasoned internally*. Displaying thoughts inline with tasks would introduce noise and reduce clarity of the main execution flow.
+The primary user is a non-technical financial analyst who cares about _what the system found_, not _how it planned to find it_. Inline thoughts would fragment the task timeline and bury the execution signal under internal reasoning noise. A separate panel keeps the main flow clean while still making reasoning accessible for users who want it.
 
-By isolating them in a separate panel, the UI maintains clarity while still offering transparency for users who want deeper insight.
+**What would cause me to reconsider**
 
-**Future Consideration**
-
-If user feedback indicates that reasoning is critical for trust, I would:
-- make thoughts toggleable per task
-- or attach relevant thoughts directly to specific tasks
+If analysts in usability testing spent time scrolling past the task list looking for context on _why_ a specific task ran, that would signal thoughts need to be anchored closer to their source task. I'd add a collapsible "reasoning" row inside each TaskItem, shown only when the task has an associated thought.
 
 ---
 
@@ -26,19 +22,15 @@ If user feedback indicates that reasoning is critical for trust, I would:
 
 **Decision**
 
-Tasks with the same `parallel_group` are grouped visually under a labeled container ("Parallel Tasks").
+Tasks sharing the same `parallel_group` are visually grouped inside a labeled container with a left border accent ("Parallel"), rendered vertically within the group.
 
 **Reasoning**
 
-Rendering these tasks as a flat list would incorrectly imply sequential execution. Grouping them makes concurrency explicit and improves mental mapping of how the system operates.
+A flat list of parallel tasks implies sequential execution — which is factually wrong and would mislead an analyst interpreting the run. Grouping them makes concurrency explicit without requiring a graph. The vertical layout within the group was chosen over a horizontal grid because the task cards contain variable-length content (tool calls, outputs) that would break in a fixed-width column layout.
 
-The vertical grouped layout was chosen for simplicity and readability over more complex visualizations (e.g., graphs or grids).
+**What would cause me to reconsider**
 
-**Future Consideration**
-
-For larger parallel groups, I would explore:
-- horizontal layouts
-- or grid-based representations for better scalability
+If parallel groups regularly contain more than 4–5 tasks, vertical stacking becomes harder to scan. A side-by-side column layout or a compact "N tasks running in parallel" summary row with expand-on-click would be worth exploring at that scale.
 
 ---
 
@@ -46,19 +38,15 @@ For larger parallel groups, I would explore:
 
 **Decision**
 
-Partial outputs are rendered inline within each task as they arrive, with a subtle distinction between intermediate and final outputs.
+Intermediate outputs (`is_final: false`) are rendered inline within each task as they arrive, visually distinguished from final outputs with a trailing `...` and muted text color. Final outputs are shown in full with emphasis.
 
 **Reasoning**
 
-Showing intermediate outputs improves transparency and helps users understand progress in real time. It also builds trust in the system by exposing how results are formed.
+Hiding intermediate outputs entirely would make tasks appear stalled during long-running operations, increasing analyst anxiety. Showing them progressively communicates that work is happening and gives analysts early signal on the direction of results. The `...` suffix was chosen over a streaming animation to avoid UI flickering on rapid re-renders.
 
-A simpler progressive indicator (`...`) was used instead of full streaming animation to ensure stability and avoid UI flickering caused by frequent re-renders.
+**What would cause me to reconsider**
 
-**Future Consideration**
-
-If outputs become verbose:
-- collapse intermediate outputs into a log view
-- or allow users to toggle visibility
+If tasks emit many intermediate outputs (5+), the task card becomes noisy. In that case I would collapse intermediates into a scrollable log, showing only the most recent partial and the final output at the top level.
 
 ---
 
@@ -66,19 +54,15 @@ If outputs become verbose:
 
 **Decision**
 
-Cancelled tasks are displayed as a neutral state ("Stopped early") instead of an error.
+Cancelled tasks are displayed with a neutral grey badge and the label "Stopped early", with the `message` field rendered as supporting text (e.g. "Enough peer data collected").
 
 **Reasoning**
 
-Cancellation in this system represents an intentional decision by the coordinator (e.g., sufficient data already available), not a failure. Treating it as an error would mislead users and reduce trust.
+Cancellation with `reason: "sufficient_data"` is not a failure — it is an intentional coordinator decision to proceed with available data. Styling it as an error (red, warning icon) would alarm analysts and undermine trust in the system. Neutral styling with an explanatory message frames it accurately: the system made a smart call, not a mistake.
 
-The UI uses muted styling and explanatory text to clearly differentiate this state from failure.
+**What would cause me to reconsider**
 
-**Future Consideration**
-
-If users still misinterpret this state:
-- add tooltips or icons
-- or provide more contextual explanation
+If analysts in testing consistently interpreted "Stopped early" as something going wrong — asking "why did it stop?" in a concerned way — I'd add a tooltip or inline callout that explicitly says "The coordinator had enough data from other tasks and stopped this one intentionally." The current message field from the event payload partially handles this, but a more prominent explanation may be needed.
 
 ---
 
@@ -86,17 +70,15 @@ If users still misinterpret this state:
 
 **Decision**
 
-Dependencies are not explicitly visualized, but the task order and grouping ensure the UI does not contradict execution flow.
+Dependencies are not explicitly visualized. The UI renders tasks in the order they are received via the event stream, which naturally reflects the execution order implied by `depends_on`. A synthesis task that `depends_on` earlier tasks will always appear after them because it is spawned after them.
 
 **Reasoning**
 
-Displaying a full dependency graph would add complexity and overwhelm the primary user. Instead, maintaining a consistent execution order preserves clarity while still respecting dependencies implicitly.
+Drawing dependency arrows or a graph would add visual complexity that serves developers more than analysts. Since the event stream already encodes correct execution order, preserving arrival order in the UI implicitly respects dependencies without requiring the analyst to interpret a graph. The case where a dependency was cancelled (e.g. `t_004` not in `t_005`'s `depends_on`) is handled by the coordinator before the event reaches the UI — the frontend doesn't need to resolve it.
 
-**Future Consideration**
+**What would cause me to reconsider**
 
-If deeper inspection is required:
-- introduce an optional dependency view
-- or add lightweight indicators for dependent tasks
+If an analyst ever asked "why did this task start before that one?" during testing, that would signal the implicit ordering isn't legible enough. I would add a lightweight `depends on: t_001, t_002` annotation inside the task card header as a first step — no graph required.
 
 ---
 
@@ -104,18 +86,12 @@ If deeper inspection is required:
 
 **Decision**
 
-The final output is placed at the end of the task timeline and visually emphasized.
+The final output is rendered after the task list, visually emphasized with a distinct green bordered card, and includes citations when present.
 
 **Reasoning**
 
-Placing the output at the top initially improved visibility but disrupted the narrative flow of execution. Since this UI represents a process unfolding over time, placing the result at the end makes it feel like a natural conclusion.
+Placing the output at the top would make it feel like a static summary that exists independently of the process. Since this UI is about watching a run _unfold_, the output should feel like a conclusion — earned at the end of a visible chain of work. This placement also mirrors how analysts naturally read: process first, result last. The green border and section heading ensure it still stands out clearly and doesn't get lost after a long task list.
 
-Visual emphasis ensures the result still stands out as the most important element.
+**What would cause me to reconsider**
 
-**Future Consideration**
-
-If users prioritize results over process:
-- move the output to the top
-- or provide a summary view with collapsible execution details
-
----
+If analysts were observed scrolling past the final output or missing it entirely, I would either pin it in a sticky footer during the run or add a "Jump to result" anchor link in the RunHeader once the run completes.
