@@ -9,17 +9,19 @@ function App() {
   console.log("STATE UPDATE:", state);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-4">
-      <RunHeader state={state} />
-      <TaskList state={state} />
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="p-6 max-w-3xl mx-auto space-y-4">
+        <RunHeader state={state} />
+        <TaskList state={state} />
 
-      {state.finalOutput && (
-        <div className="p-5 border-2 border-green-400 rounded-lg bg-green-50 mt-6 shadow-sm">
-          <h3 className="font-semibold text-green-700 mb-2">Final Output</h3>
-          <p className="text-gray-800">{state.finalOutput.summary}</p>
-        </div>
-      )}
-      <AgentThoughts thoughts={state.agentThoughts} />
+        {state.finalOutput && (
+          <div className="p-5 border-2 border-green-400 rounded-xl bg-green-50 mt-6 shadow-sm">
+            <h3 className="font-semibold text-green-700 mb-2">Final Output</h3>
+            <p className="text-gray-800">{state.finalOutput.summary}</p>
+          </div>
+        )}
+        <AgentThoughts thoughts={state.agentThoughts} />
+      </div>
     </div>
   );
 }
