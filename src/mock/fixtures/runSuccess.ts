@@ -5,14 +5,14 @@ export const runSuccessEvents: readonly Event[] = [
     type: "run_started",
     run_id: "r_001",
     query: "Analyse Apple R&D intensity vs large-cap peers",
-    timestamp: Date.now(),
+    timestamp: 1700000000000,
   },
 
   {
     type: "agent_thought",
-    task_id: "coordinator",
-    thought: "Breaking into Apple + peer analysis tasks",
-    timestamp: Date.now(),
+    task_id: null,
+    thought: "Initializing agent workflow...",
+    timestamp: 1700000000500,
   },
 
   // MAIN TASK
@@ -23,7 +23,8 @@ export const runSuccessEvents: readonly Event[] = [
     agent: "filing_fetcher",
     depends_on: [],
     parallel_group: null,
-    timestamp: Date.now(),
+    spawned_by: "coordinator",
+    timestamp: 1700000001000,
   },
 
   {
@@ -31,7 +32,7 @@ export const runSuccessEvents: readonly Event[] = [
     task_id: "t_001",
     tool: "sec_edgar_search",
     input_summary: "AAPL filings",
-    timestamp: Date.now(),
+    timestamp: 1700000002000,
   },
 
   {
@@ -39,7 +40,7 @@ export const runSuccessEvents: readonly Event[] = [
     task_id: "t_001",
     tool: "sec_edgar_search",
     output_summary: "5 filings found",
-    timestamp: Date.now(),
+    timestamp: 1700000003000,
   },
 
   {
@@ -48,14 +49,14 @@ export const runSuccessEvents: readonly Event[] = [
     content: "Apple R&D grew from $16B → $29B",
     is_final: false,
     quality_score: null,
-    timestamp: Date.now(),
+    timestamp: 1700000004000,
   },
 
   {
     type: "task_update",
     task_id: "t_001",
     status: "complete",
-    timestamp: Date.now(),
+    timestamp: 1700000005000,
   },
 
   // PARALLEL TASKS
@@ -66,8 +67,10 @@ export const runSuccessEvents: readonly Event[] = [
     agent: "peer_fetcher",
     depends_on: [],
     parallel_group: "g_1",
-    timestamp: Date.now(),
+    spawned_by: "coordinator",
+    timestamp: 1700000006000,
   },
+
   {
     type: "task_spawned",
     task_id: "t_003",
@@ -75,8 +78,10 @@ export const runSuccessEvents: readonly Event[] = [
     agent: "peer_fetcher",
     depends_on: [],
     parallel_group: "g_1",
-    timestamp: Date.now(),
+    spawned_by: "coordinator",
+    timestamp: 1700000007000,
   },
+
   {
     type: "task_spawned",
     task_id: "t_004",
@@ -84,23 +89,25 @@ export const runSuccessEvents: readonly Event[] = [
     agent: "peer_fetcher",
     depends_on: [],
     parallel_group: "g_1",
-    timestamp: Date.now(),
+    spawned_by: "coordinator",
+    timestamp: 1700000008000,
   },
 
-  // INTERLEAVED TOOL CALLS
+  // INTERLEAVED EXECUTION
   {
     type: "tool_call",
     task_id: "t_002",
     tool: "sec_edgar_search",
     input_summary: "MSFT filings",
-    timestamp: Date.now(),
+    timestamp: 1700000009000,
   },
+
   {
     type: "tool_call",
     task_id: "t_003",
     tool: "sec_edgar_search",
     input_summary: "GOOG filings",
-    timestamp: Date.now(),
+    timestamp: 1700000010000,
   },
 
   {
@@ -108,7 +115,7 @@ export const runSuccessEvents: readonly Event[] = [
     task_id: "t_002",
     tool: "sec_edgar_search",
     output_summary: "MSFT filings fetched",
-    timestamp: Date.now(),
+    timestamp: 1700000011000,
   },
 
   {
@@ -117,23 +124,23 @@ export const runSuccessEvents: readonly Event[] = [
     content: "Microsoft R&D steady ~13%",
     is_final: true,
     quality_score: 0.9,
-    timestamp: Date.now(),
+    timestamp: 1700000012000,
   },
 
   {
     type: "task_update",
     task_id: "t_002",
     status: "complete",
-    timestamp: Date.now(),
+    timestamp: 1700000013000,
   },
 
-  // FAILURE + RETRY
+  // FAILURE + RETRY + CANCEL
   {
     type: "task_update",
     task_id: "t_004",
     status: "failed",
     error: "Rate limit hit",
-    timestamp: Date.now(),
+    timestamp: 1700000014000,
   },
 
   {
@@ -141,17 +148,16 @@ export const runSuccessEvents: readonly Event[] = [
     task_id: "t_004",
     status: "running",
     message: "Retrying...",
-    timestamp: Date.now(),
+    timestamp: 1700000015000,
   },
 
-  // CANCELLED
   {
     type: "task_update",
     task_id: "t_004",
     status: "cancelled",
     reason: "sufficient_data",
     message: "Enough peer data collected",
-    timestamp: Date.now(),
+    timestamp: 1700000016000,
   },
 
   {
@@ -160,17 +166,17 @@ export const runSuccessEvents: readonly Event[] = [
     content: "Google R&D ~15%",
     is_final: true,
     quality_score: 0.92,
-    timestamp: Date.now(),
+    timestamp: 1700000017000,
   },
 
   {
     type: "task_update",
     task_id: "t_003",
     status: "complete",
-    timestamp: Date.now(),
+    timestamp: 1700000018000,
   },
 
-  // SYNTHESIS TASK
+  // SYNTHESIS
   {
     type: "task_spawned",
     task_id: "t_005",
@@ -178,14 +184,15 @@ export const runSuccessEvents: readonly Event[] = [
     agent: "coordinator",
     depends_on: ["t_001", "t_002", "t_003"],
     parallel_group: null,
-    timestamp: Date.now(),
+    spawned_by: "coordinator",
+    timestamp: 1700000019000,
   },
 
   {
     type: "agent_thought",
     task_id: "t_005",
     thought: "Combining Apple vs peers...",
-    timestamp: Date.now(),
+    timestamp: 1700000020000,
   },
 
   {
@@ -194,7 +201,7 @@ export const runSuccessEvents: readonly Event[] = [
     content: "Apple is increasing R&D intensity...",
     is_final: false,
     quality_score: null,
-    timestamp: Date.now(),
+    timestamp: 1700000021000,
   },
 
   {
@@ -203,14 +210,14 @@ export const runSuccessEvents: readonly Event[] = [
     content: "Final comparison ready",
     is_final: true,
     quality_score: 0.95,
-    timestamp: Date.now(),
+    timestamp: 1700000022000,
   },
 
   {
     type: "task_update",
     task_id: "t_005",
     status: "complete",
-    timestamp: Date.now(),
+    timestamp: 1700000023000,
   },
 
   // FINAL OUTPUT
@@ -218,13 +225,26 @@ export const runSuccessEvents: readonly Event[] = [
     type: "run_complete",
     run_id: "r_001",
     status: "complete",
-    duration_ms: 21000,
+    duration_ms: 23000,
     task_count: 5,
     output: {
       summary:
         "Apple increased R&D intensity vs peers, though still behind Google in % terms.",
-      citations: [],
+      citations: [
+        {
+          ref_id: "c1",
+          title: "Apple 10-K Filing",
+          source: "SEC",
+          page: 45,
+        },
+        {
+          ref_id: "c2",
+          title: "Google Annual Report",
+          source: "SEC",
+          page: 32,
+        },
+      ],
     },
-    timestamp: Date.now(),
+    timestamp: 1700000024000,
   },
 ];
