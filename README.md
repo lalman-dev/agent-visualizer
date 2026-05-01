@@ -41,12 +41,39 @@ This project solves that by making the **entire execution process visible and un
 
 ---
 
+## 🧪 Running Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+## 🔀 Switching Between Fixtures
+
+Use the scenario buttons at the top of the UI to switch between runs:
+
+| Button          | Description                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Success Run** | Full happy-path scenario — sequential task, parallel peer fetches, failure + retry + cancellation, synthesis, final output with citations |
+| **Error Run**   | Partial run that ends in `run_error` — one task complete, one in flight, one never started                                                |
+| **Reset**       | Returns to the idle state                                                                                                                 |
+
+No code changes needed — fixtures are swapped in the UI at runtime.
+
+---
+
 ## 🏗️ Architecture
 
 ### Event-Driven State System
 
 The application is built around a reducer-based state machine:
+
 Event Stream → Reducer → Normalized State → UI
+
 Each incoming event incrementally updates the system state, ensuring predictable and traceable UI behavior.
 
 ---
@@ -65,23 +92,13 @@ type AgentEvent =
   | RunCompletedEvent;
 ```
 
-This ensures:
-
-- Strong type safety across the event pipeline
-- Clear contracts between the event stream and UI
-- Easier debugging and future extensibility
+This ensures strong type safety across the event pipeline, clear contracts between the stream and UI, and easier debugging and extensibility.
 
 ---
 
 ### Mock Streaming Engine
 
-A custom event emitter simulates real-time execution with:
-
-- Variable delays for realistic pacing
-- A pub-sub model for decoupled event handling
-- Proper cleanup on component unmount
-
-This mirrors how production WebSocket or SSE-based systems behave, making it straightforward to swap in a real backend.
+A custom `MockEventEmitter` class simulates real-time execution with variable delays (`index * 800 + random jitter`), a pub-sub model for decoupled event handling, and proper cleanup on component unmount. This mirrors how a production WebSocket or SSE backend would behave — swapping in a real transport requires only replacing the emitter.
 
 ---
 
@@ -94,44 +111,39 @@ tasks: Record<string, Task>
 taskOrder: string[]
 ```
 
-This enables:
-
-- Efficient O(1) task updates by ID
-- Stable render order independent of arrival sequence
-- Easy grouping for parallel task visualization
+This enables O(1) task updates by ID, stable render order regardless of event arrival sequence, and efficient grouping for parallel task visualization.
 
 ---
 
 ## 🖥️ UI Structure
 
-RunHeader
+```
+RunHeader          — query, run status badge, elapsed time
 ↓
-TaskList (timeline)
-├── TaskItem
-└── ParallelGroup
+TaskList           — ordered timeline of tasks
+├── TaskItem     — label, agent, status, tool calls, outputs, retry info
+└── ParallelGroup — grouped tasks sharing a parallel_group, with left-border accent
 ↓
-Final Output
+Final Output       — emphasized result card with summary and citations
 ↓
-Agent Thoughts
+Agent Thoughts     — separate panel for coordinator and task-level reasoning
+```
 
 ---
 
 ## 🎨 Key Design Decisions
 
-**Final Output Placement**
-Placed at the end of the timeline to preserve execution flow, making the result feel like a natural conclusion rather than an interruption.
+See [DECISIONS.md](./DECISIONS.md) for full reasoning on each decision. Summary:
 
-**Parallel Task Representation**
-Tasks sharing a `parallel_group` are grouped visually to prevent misleading sequential interpretation of work that happened concurrently.
+**Agent Thoughts** — shown in a separate panel below the timeline, not inline, to keep the execution flow clean for non-technical analysts.
 
-**Cancelled State**
-Displayed as a neutral "stopped early" state rather than an error, accurately reflecting intentional system behavior.
+**Parallel Task Layout** — tasks with the same `parallel_group` are grouped in a labeled container with a left border accent to make concurrency visually explicit.
 
-**Partial Outputs**
-Rendered inline with progressive updates to provide continuous feedback throughout execution — no waiting for a final result.
+**Partial Outputs** — rendered inline as they arrive, with `...` suffix on intermediates and emphasis on final outputs, so analysts can see work progressing without waiting.
 
-**Agent Thoughts**
-Surfaced in a dedicated panel to keep the main timeline clean while still exposing model reasoning for full transparency.
+**Cancelled State** — displayed as neutral grey with "Stopped early" label, not as an error, because cancellation is an intentional coordinator decision.
+
+**Task Dependencies** — not explicitly visualized; event arrival order naturally preserves execution order, which is sufficient for the analyst user.
 
 ---
 
@@ -146,43 +158,43 @@ Surfaced in a dedicated panel to keep the main timeline clean while still exposi
 
 ---
 
-## 🧪 Running Locally
-
-```bash
-npm install
-npm run dev
-```
-
----
-
 ## 📂 Project Structure
 
 ```
-src/
-├── components/     # UI components (RunHeader, TaskItem, ParallelGroup, etc.)
-├── state/          # Reducer, state types, and event definitions
-├── mock/           # Streaming engine and simulated event sequences
-└── utils/          # Helpers and shared logic
+/
+├── src/
+│   ├── components/     # RunHeader, TaskItem, TaskList, ParallelGroup, AgentThoughts
+│   ├── state/          # types.ts, reducer.ts, useAgentRun.ts
+│   ├── mock/
+│   │   ├── eventEmitter.ts        # MockEventEmitter with variable timing
+│   │   └── fixtures/
+│   │       ├── runSuccess.ts      # Full happy-path fixture
+│   │       └── runError.ts        # Partial run ending in run_error
+│   └── utils/
+│       └── groupTasks.ts          # Groups parallel tasks for rendering
+├── DECISIONS.md
+└── README.md
 ```
 
 ---
 
-## 🔮 Future Improvements
+## 🔮 Known Gaps & Future Improvements
 
-- [ ] Dependency graph visualization
-- [ ] WebSocket / SSE integration for real backends
-- [ ] Improved streaming UX with smoother partial output transitions
-- [ ] Collapsible logs for large or long-running executions
+- [ ] **No screen recording in demo** — GIF placeholder above should be replaced before final submission
+- [ ] **Dependency graph** — `depends_on` is modeled in state but not visualized; a lightweight indicator inside the task card would help
+- [ ] **WebSocket / SSE integration** — the `MockEventEmitter` interface is designed to be swappable; a real transport would require minimal changes
+- [ ] **Collapsible logs** — tasks with many intermediate outputs could benefit from a collapsed log view
+- [ ] **Error fixture depth** — the error fixture covers the required scenario but could include more in-flight task variety
 
 ---
 
 ## 📌 What This Project Demonstrates
 
-- Event-driven frontend architecture at a non-trivial scale
-- Complex async state modeling with a reducer-based state machine
+- Event-driven frontend architecture built around a reducer state machine
+- Complex async state modeling — retry sequences, cancellation, partial outputs, parallel grouping
 - Real-time UI rendering with predictable, traceable updates
-- Product-level UX thinking — clarity, hierarchy, and user trust
-- Ability to reason about and implement systems with genuine complexity
+- Product-level UX thinking for a non-technical analyst audience
+- Clean separation between mock transport and application state
 
 ---
 
