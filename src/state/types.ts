@@ -93,6 +93,7 @@ export interface TaskSpawnedEvent {
   agent: string;
   depends_on: string[];
   parallel_group: string | null;
+  spawned_by: string;
   timestamp: number;
 }
 
