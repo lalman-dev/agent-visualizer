@@ -32,8 +32,14 @@ export function TaskItem({ task }: { task: Task }) {
       </div>
 
       {/* DETAILS */}
-      {open && (
-        <div className="mt-3 space-y-3 text-sm">
+      <div
+        className={`transition-all duration-400 ${
+          open
+            ? "max-h-125 opacity-100 mt-3"
+            : "max-h-0 opacity-0 overflow-hidden"
+        }`}
+      >
+        <div className="space-y-3 text-sm">
           {/* TOOL CALLS */}
           {task.toolCalls.length > 0 && (
             <div>
@@ -92,7 +98,7 @@ export function TaskItem({ task }: { task: Task }) {
             </p>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
