@@ -18,7 +18,7 @@ export function reducer(state: RunState, event: Event): RunState {
         id: event.run_id,
         query: event.query,
         status: "running",
-        startTime: event.timestamp,
+        startTime: Date.now(),
       };
 
     case "task_spawned": {
