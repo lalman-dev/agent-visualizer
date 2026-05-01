@@ -1,12 +1,11 @@
 import { useState } from "react";
 import type { Task } from "../state/types";
-import { useStreamingText } from "../utils/useStreamingText";
 
 export function TaskItem({ task }: { task: Task }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition">
+    <div className="border rounded-xl bg-gray-50 p-4 shadow-sm hover:shadow-md transition">
       {/* HEADER */}
       <div
         className="flex justify-between items-center cursor-pointer"
@@ -57,15 +56,16 @@ export function TaskItem({ task }: { task: Task }) {
             <div>
               <p className="font-semibold text-xs text-gray-500">Outputs</p>
 
-              {task.outputs.map((o, i) => {
-                const text = useStreamingText(o.content);
-
-                return (
-                  <p key={i} className="text-xs text-gray-700">
-                    {o.isFinal ? o.content : text}
-                  </p>
-                );
-              })}
+              {task.outputs.map((o, i) => (
+                <p
+                  key={i}
+                  className={`text-xs ${
+                    o.isFinal ? "text-green-700 font-medium" : "text-gray-600"
+                  }`}
+                >
+                  {o.isFinal ? o.content : o.content + "..."}
+                </p>
+              ))}
             </div>
           )}
 
