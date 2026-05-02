@@ -8,7 +8,11 @@ This project focuses on making complex AI execution processes **transparent, leg
 
 ## 🚀 Demo
 
-> 👉 Add a short GIF or screen recording here (20–30 sec)
+👉 <img width="800" height="500" alt="agentrun-visualizer" src="https://github.com/user-attachments/assets/ea32478f-b907-428e-97c9-5c3cbfca038f" />
+
+[Live link]([https://finance-dashboard-kappa-liard.vercel.app](https://agent-visualizer.vercel.app/)/](https://agent-visualizer.vercel.app/))_
+
+
 
 ---
 
